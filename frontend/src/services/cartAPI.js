@@ -48,7 +48,7 @@ export const updateCartItem = async ({ sessionId, itemId, quantity }) => {
     }
 
     const { data } = await axios.post(
-      `${API_URL}/update`,
+      `http://localhost:5000/api/cart/update`,
       {
         sessionId,
         itemId: String(itemId), // Ensure string ID

@@ -47,6 +47,13 @@ exports.getMe = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({ success: true, data: vendor });
 });
+exports.getAll = asyncHandler(async (req, res, next) => {
+   const vendors = await Vendor.find()
+      res.json({
+          message: "role fetched successfully",
+          data:vendors
+        });  
+});
 
 // Get dashboard stats
 exports.getDashboard = asyncHandler(async (req, res, next) => {

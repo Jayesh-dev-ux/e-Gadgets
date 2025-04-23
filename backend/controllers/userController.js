@@ -93,7 +93,7 @@ const signup = async (req,res) =>{
 
 const getAllUsers = async (req,res) =>{
  
-    const users = await userModel.find().populate('roleId')
+    const users = await userModel.find()
     res.json({
         message: "role fetched successfully",
         data:users

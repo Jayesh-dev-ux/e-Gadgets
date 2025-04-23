@@ -7,6 +7,7 @@ const {
   getDashboard,
   updateDetails,
   updatePassword,
+  getAll
 } = require("../controllers/vendorController");
 
 const { vendorAuth } = require("../middleware/authMiddleware");
@@ -15,6 +16,7 @@ const router = express.Router();
 
 router.post("/register", register);
 router.post("/login", login);
+router.get("/getAll", getAll)
 router.get("/logout", vendorAuth, logout);
 router.get("/me", vendorAuth, getMe);
 router.get("/dashboard", vendorAuth, getDashboard);

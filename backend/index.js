@@ -15,6 +15,7 @@ const wishlistRoutes = require('./routes/wishlistRoutes');
 const vendorRoutes = require('./routes/vendorRoutes');
 const vendorProductRoutes = require('./routes/vendorProductRoutes');
 const session = require("express-session");
+const paymentRoutes = require("../backend/routes/PaymentRoutes")
 
 const app = express();
 app.use(
@@ -44,6 +45,7 @@ app.use("/uploads", express.static("uploads"));
 // Routes
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api", paymentRoutes)
 app.use("/api/auth", authRoutes);
 app.use("/api/cart", cartRoutes);
 // Add this near your other route imports

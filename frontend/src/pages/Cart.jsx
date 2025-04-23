@@ -72,12 +72,18 @@ const Cart = () => {
     
     try {
       setUpdatingItems(prev => ({ ...prev, [itemId]: true }));
+      console.log("Updating item ID:", itemId);
+      console.log("Cart items before update:", cart.items);
       const updatedCart = await updateCartItem({
         sessionId,
         itemId,
         quantity: newQuantity
       });
+
       setCart(updatedCart);
+      // localStorage.setItem("cart", JSON.stringify(updatedCartResponse.cart));
+      console.log("Updated cart from backend:", updatedCart);
+
     } catch (error) {
       console.error("Update quantity error:", error);
       toast.error("Failed to update quantity", {
@@ -128,7 +134,7 @@ const Cart = () => {
             : "Your cart awaits"}
         </p>
 
-        {cart.items.length === 0 ? (
+        {(cart.items?.length || 0) === 0 ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -205,7 +211,7 @@ const Cart = () => {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
                               <button
-                                onClick={() => handleQuantityChange(item._id, item.quantity - 1)}
+                                onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}
                                 disabled={item.quantity <= 1 || updatingItems[item._id]}
                                 className="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50"
                               >
@@ -219,7 +225,7 @@ const Cart = () => {
                                 )}
                               </span>
                               <button
-                                onClick={() => handleQuantityChange(item._id, item.quantity + 1)}
+                                onClick={() => handleQuantityChange(item.productId, item.quantity + 1)}
                                 disabled={updatingItems[item._id]}
                                 className="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50"
                               >

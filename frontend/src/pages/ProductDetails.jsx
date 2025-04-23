@@ -81,7 +81,7 @@ console.log(response.data);
       quantity: quantity,  
     });
 
-  ;
+  
 
     if (response.success) {
       toast.success(

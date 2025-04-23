@@ -29,6 +29,9 @@ import EditProduct from "./pages/vendor/EditProduct";
 import NavbarLoader from "./pages/NavbarLoader";
 import OrderConfirmation from "./pages/OrderConfirmation ";
 import OrdersTab from "./pages/vendor/OrdersTab";
+import { AdminUser } from "./pages/AdminUser";
+import { AdminVendor } from "./pages/AdminVendor";
+import { AdminProduct } from "./pages/AdminProduct";
 // import VendorSidebar from "./pages/vendor/VendorSidebar";
 // import VendorNavItem from "./pages/vendor/VendorNavItem";
 // import VendorMainContent from "./pages/vendor/VendorMainContent";
@@ -193,19 +196,43 @@ const AnimatedRoutes = () => {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute adminOnly>
+            // <ProtectedRoute adminOnly>
               <PageWrapper>
                 <AdminDashboard />
               </PageWrapper>
-            </ProtectedRoute>
+            // </ProtectedRoute>
           }
         />
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
+            // <ProtectedRoute>
               <AdminDashboard />
-            </ProtectedRoute>
+            // </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            // <ProtectedRoute>
+              <AdminUser />
+            // </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/vendors"
+          element={
+            // <ProtectedRoute>
+              <AdminVendor />
+            // </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/products"
+          element={
+            // <ProtectedRoute>
+              <AdminProduct />
+            // </ProtectedRoute>
           }
         />
         <Route

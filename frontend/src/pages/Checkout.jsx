@@ -5,6 +5,8 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { getCart, getSessionId } from "../services/cartAPI";
 import { createOrder } from "../services/orderAPI";
+import Razorpay from "razorpay";
+import axios from "axios";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -51,6 +53,113 @@ const Checkout = () => {
     }));
   };
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => {
+        resolve(true);
+      };
+      script.onerror = () => {
+        resolve(false);
+      };
+      document.body.appendChild(script);
+    });
+  };
+
+  const displayRazorpay = async (orderData) => {
+    const {data:{key}} = await axios.get("http://localhost:5000/api/getkeys")
+    console.log(key)
+    try {
+      // Load Razorpay script
+      const res = await loadRazorpayScript();
+      if (!res) {
+        toast.error("Razorpay SDK failed to load. Are you online?");
+        return;
+      }
+
+      // Create order on your server (you'll need to implement this endpoint)
+      const razorpayOrder = await axios.post(
+        "http://localhost:5000/api/createOrder",
+        {
+          amount: cart.subtotal * 100, // Razorpay expects amount in paise
+          currency: "INR",
+        }
+      );
+      console.log(razorpayOrder)
+
+      const options = {
+        key, // Your Razorpay Key ID
+        amount: razorpayOrder.data.amount,
+        currency: razorpayOrder.data.currency,
+        name: "Your Store Name",
+        description: "Payment for your order",
+        image: razorpayOrder.data.image,
+        order_id: razorpayOrder.data.id,
+        handler: async function (response) {
+          // Handle successful payment
+          try {
+            // Verify payment on your server
+            const verification = await axios.post(
+              "http://localhost:5000/api/verifyPayment",
+              {
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+              }
+            );
+
+            if (verification.data.success) {
+              // Payment successful, create order in your database
+              const orderResponse = await createOrder({
+                ...orderData,
+                paymentId: response.razorpay_payment_id,
+                paymentStatus: "completed",
+              });
+
+              toast.success("Payment successful! Order placed.", {
+                position: "top-right",
+                autoClose: 2000,
+              });
+              navigate(`/orderConfirmation/${orderResponse.orderId}`);
+            } else {
+              toast.error("Payment verification failed", {
+                position: "top-right",
+                autoClose: 2000,
+              });
+            }
+          } catch (error) {
+            console.error("Payment verification error:", error);
+            toast.error("Payment verification failed", {
+              position: "top-right",
+              autoClose: 2000,
+            });
+          }
+        },
+        prefill: {
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          contact: "9000000000", // You might want to add phone number to your form
+        },
+        notes: {
+          address: `${formData.street}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
+        },
+        theme: {
+          color: "#3399cc",
+        },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+    } catch (error) {
+      console.error("Razorpay error:", error);
+      toast.error("Error initiating payment", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -64,23 +173,32 @@ const Checkout = () => {
 
       const orderData = {
         sessionId,
-        products: cart.items.map(item => ({
-          image:item.image,
+        products: cart.items.map((item) => ({
+          image: item.image,
           product: item._id,
           quantity: item.quantity,
-          price:item.price  
+          price: item.price,
         })),
         totalAmount: cart.subtotal,
         shippingAddress,
         paymentMethod: formData.paymentMethod,
       };
+
+      console.log(orderData);
       
-      const response = await createOrder(orderData);
-      toast.success("Order placed successfully!", {
-        position: "top-right",
-        autoClose: 2000,
-      });
-      navigate(`/orderConfirmation/${response.orderId}`);
+
+      if (formData.paymentMethod === "credit_card") {
+        // Initiate Razorpay payment
+        await displayRazorpay(orderData);
+      } else {
+        // For other payment methods, create order directly
+        const response = await createOrder(orderData);
+        toast.success("Order placed successfully!", {
+          position: "top-right",
+          autoClose: 2000,
+        });
+        navigate(`/orderConfirmation/${response.orderId}`);
+      }
     } catch (error) {
       console.error("Order placement error:", error);
       toast.error(error.response?.data?.message || "Failed to place order", {

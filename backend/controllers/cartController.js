@@ -13,7 +13,7 @@ const calculateCartTotals = (items) => {
 
 // Create or get session cart
 const getSessionCart = async (sessionId) => {
-  let cart = await Cart.findOne({ sessionId }).lean();
+  let cart = await Cart.findOne({ sessionId });
 
   if (!cart) {
     cart = await Cart.create({
@@ -26,9 +26,12 @@ const getSessionCart = async (sessionId) => {
 };
 
 // Get cart
+// Get cart
 exports.getCart = async (req, res) => {
   try {
     const { sessionId } = req.body;
+
+    // Removed .lean() to retain _id fields in subdocuments
     const cart = await getSessionCart(sessionId);
 
     const { subtotal, totalItems } = calculateCartTotals(cart.items);
@@ -36,7 +39,7 @@ exports.getCart = async (req, res) => {
     res.status(200).json({
       success: true,
       cart: {
-        ...cart,
+        ...cart.toObject(), // Convert Mongoose document to plain object
         subtotal,
         totalItems,
       },
@@ -49,6 +52,7 @@ exports.getCart = async (req, res) => {
     });
   }
 };
+
 
 // Add to cart
 // exports.addToCart = async (req, res) => {
@@ -194,7 +198,10 @@ exports.addToCart = async (req, res) => {
 // Update cart item - fixed version
 exports.updateCartItem = async (req, res) => {
   try {
+    console.log("UPDATE ROUTE HIT");
     const { sessionId, itemId, quantity } = req.body;
+
+    console.log("Session ID received:", sessionId);
 
     // Validate inputs
     if (!sessionId || !itemId || quantity === undefined) {
@@ -212,6 +219,7 @@ exports.updateCartItem = async (req, res) => {
     }
 
     const cart = await Cart.findOne({ sessionId });
+    console.log("Cart found?", cart);
     if (!cart) {
       return res.status(404).json({
         success: false,
@@ -219,9 +227,11 @@ exports.updateCartItem = async (req, res) => {
       });
     }
 
+    console.log("Items in cart:", cart.items.map(i => i._id?.toString()));
+console.log("Looking for itemId:", itemId);
     // Find the item using safe comparison
     const itemToUpdate = cart.items.find(
-      (item) => item._id && item._id.toString() === itemId
+      (item) =>  item.productId.toString() === itemId 
     );
 
     if (!itemToUpdate) {
