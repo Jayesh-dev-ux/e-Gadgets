@@ -14,6 +14,30 @@ export const getCart = async (sessionId) => {
 };
 
 // Add item to cart
+// export const addToCart = async ({
+//   sessionId,
+//   productId,
+//   name,
+//   price,
+//   image,
+//   quantity = 1,
+// }) => {
+//   try {
+//     const { data } = await axios.post(`${API_URL}/add`, {
+//       sessionId,
+//       productId,
+//       name,
+//       price,
+//       image,
+//       quantity,
+//     });
+//     return data;
+//   } catch (error) {
+//     console.error("Error adding to cart:", error);
+//     throw error;
+//   }
+// };
+
 export const addToCart = async ({
   sessionId,
   productId,
@@ -31,12 +55,28 @@ export const addToCart = async ({
       image,
       quantity,
     });
+
+    // ✅ Ensure cart is initialized as an array
+    let cart = JSON.parse(localStorage.getItem("cartItem")) || [];
+
+    // Check if the item already exists in the cart
+    const existingItemIndex = cart.findIndex(item => item.productId === productId);
+
+    if (existingItemIndex !== -1) {
+      cart[existingItemIndex].quantity += quantity;
+    } else {
+      cart.push({ productId, name, price, image, quantity });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+
     return data;
   } catch (error) {
     console.error("Error adding to cart:", error);
     throw error;
   }
 };
+
 
 // Update cart item quantity
 export const updateCartItem = async ({ sessionId, itemId, quantity }) => {

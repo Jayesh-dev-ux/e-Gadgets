@@ -255,18 +255,11 @@ const OrdersTab = () => {
   useEffect(() => {
     const fetchVendorOrders = async () => {
       try {
-        const vendorInfo = JSON.parse(localStorage.getItem("vendorInfo"));
-        if (!vendorInfo) {
-          throw new Error("Vendor not authenticated");
-        }
+       
 
         const response = await axios.get(
-          `http://localhost:5000/api/orders`,
-          {
-            headers: {
-              Authorization: `Bearer ${vendorInfo.token}`,
-            },
-          }
+          `http://localhost:5000/api/orders`
+         
         );
         console.log(response)  
         const formattedOrders = response.data.map(order => ({

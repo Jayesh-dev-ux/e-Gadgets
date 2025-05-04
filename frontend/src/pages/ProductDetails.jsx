@@ -23,7 +23,7 @@ const ProductDetails = ({ updateCart }) => {
         setError(null);
 
         const response = await getProductById(id);
-console.log(response.data);
+        console.log(response.data);
 
         if (!response?.data) {
           throw new Error("Product not found");

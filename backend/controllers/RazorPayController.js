@@ -28,6 +28,8 @@ const createOrder =async (req, res) => {
   try {
     const order = await razorpay.orders.create(options);
     res.json(order); // Returns the order details, including order_id
+    console.log("✅ Received orderData:", order);
+
   } catch (error) {
     console.log(error)
     console.error(error);

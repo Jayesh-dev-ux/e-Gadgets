@@ -25,11 +25,16 @@ const Checkout = () => {
     paymentMethod: "credit_card",
   });
 
+  // const userInfo = localStorage.getItem("userInfo")
+  // console.log(userInfo._id)
+
   useEffect(() => {
     const loadCart = async () => {
       try {
         const sessionId = getSessionId();
         setSessionId(sessionId);
+        const userInfo = localStorage.getItem("userInfo")
+        console.log(userInfo._id)
         const cartData = await getCart(sessionId);
         setCart(cartData);
       } catch (error) {
@@ -106,6 +111,7 @@ const Checkout = () => {
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_signature: response.razorpay_signature,
+                orderData
               }
             );
 
@@ -173,6 +179,7 @@ const Checkout = () => {
 
       const orderData = {
         sessionId,
+        // user: userInfo._id,
         products: cart.items.map((item) => ({
           image: item.image,
           product: item._id,
@@ -184,6 +191,18 @@ const Checkout = () => {
         paymentMethod: formData.paymentMethod,
       };
 
+      // const orderData = {
+      //   user: userInfo._id,
+      //   totalAmount: totalPrice,
+      //   products: cartItems.map(item => ({
+      //     product: item._id,
+      //     quantity: item.quantity,
+      //     image: item.image,
+      //     price: item.price
+      //   }))
+      // };
+      
+      
       console.log(orderData);
       
 
