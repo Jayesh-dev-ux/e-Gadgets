@@ -1,7 +1,21 @@
 const Product = require("../models/Product");
+// const Product = require("../models/VendorProduct");
 const Vendor = require("../models/Vendor"); // Ensure you have Vendor model
 const asyncHandler = require("../middleware/async");
 const ErrorResponse = require("../utils/errorResponse");
+const multer = require("multer")
+const cloudinaryUtil = require("../utils/CloudinaryUtil")
+const Counter = require("../models/Counter");
+
+const storage = multer.diskStorage({
+  destination:"./upload",
+  fileName: function(req,file,cb){
+      cb(null, file.originalname)
+  }
+})
+const upload = multer({
+  storage:storage,
+}).single("image")
 
 // @desc    Get all products for a vendor
 // @route   GET /api/vendor-products
@@ -40,29 +54,74 @@ exports.getVendorProduct = asyncHandler(async (req, res, next) => {
 // @desc    Create product for a vendor
 // @route   POST /api/vendor-products
 // @access  Private
+// exports.createVendorProduct = asyncHandler(async (req, res, next) => {
+//   req.body.vendor = req.vendor.id;
+
+//   // Save Cloudinary URL
+//   if (req.file && req.file.path) {
+//     req.body.image = req.file.path; // Cloudinary gives .path as secure_url
+//   }
+
+//   // Generate numericId dynamically
+//   const latestProduct = await Product.findOne().sort({ numericId: -1 }).lean();
+//   const nextNumericId = latestProduct ? latestProduct.numericId + 1 : 1;
+//   req.body.numericId = nextNumericId;
+
+//   const product = await Product.create(req.body);
+
+//   // Optional: Add product to Vendor's products array
+//   await Vendor.findByIdAndUpdate(req.vendor.id, {
+//     $push: { products: product._id },
+//   });
+
+//   res.status(201).json({
+//     success: true,
+//     data: product,
+//   });
+// });
 exports.createVendorProduct = asyncHandler(async (req, res, next) => {
-  req.body.vendor = req.vendor.id;
+  upload(req, res, async (err) => {
+    if (err) {
+      res.status(500).json({ message: err.message });
+    } else {
+      try {
+        // Upload to Cloudinary
+        const cloudinaryResponse = await cloudinaryUtil.uploadFileToCloudinary(req.file);
+        console.log(cloudinaryResponse);
+        console.log(req.body);
 
-  // Save Cloudinary URL
-  if (req.file && req.file.path) {
-    req.body.image = req.file.path; // Cloudinary gives .path as secure_url
-  }
+        // Assign cloudinary image url
+        req.body.image = cloudinaryResponse.secure_url;
 
-  // Generate numericId dynamically
-  const latestProduct = await Product.findOne().sort({ numericId: -1 }).lean();
-  const nextNumericId = latestProduct ? latestProduct.numericId + 1 : 1;
-  req.body.numericId = nextNumericId;
+        // Auto-increment numericId
+        let counter = await Counter.findOne({ id: "product_numericId" });
 
-  const product = await Product.create(req.body);
+        if (!counter) {
+          // Create initial counter if not exists
+          counter = await Counter.create({ id: "product_numericId", seq: 1 });
+        } else {
+          // Increment existing counter
+          counter = await Counter.findOneAndUpdate(
+            { id: "product_numericId" },
+            { $inc: { seq: 1 } },
+            { new: true }
+          );
+        }
+        
+        req.body.numericId = counter.seq;
 
-  // Optional: Add product to Vendor's products array
-  await Vendor.findByIdAndUpdate(req.vendor.id, {
-    $push: { products: product._id },
-  });
+        // Store product in DB
+        const savedProduct = await Product.create(req.body);
 
-  res.status(201).json({
-    success: true,
-    data: product,
+        res.status(200).json({
+          message: "File is uploaded and product saved",
+          data: savedProduct,
+        });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+      }
+    }
   });
 });
 
@@ -134,4 +193,3 @@ exports.deleteVendorProduct = asyncHandler(async (req, res, next) => {
     data: {},
   });
 });
-

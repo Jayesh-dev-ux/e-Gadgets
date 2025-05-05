@@ -11,6 +11,7 @@ const AddProduct = () => {
     stock: "",
     category: "",
     image: null,
+    vendor:"68067f894b7154bf56395a0b"
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,10 +59,11 @@ const AddProduct = () => {
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log(res)
       console.log(formData);
       
       toast.success("Product added successfully!");
-      navigate("/vendor/products");
+      // navigate("/vendor/products");
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || "Failed to add product");
@@ -260,3 +262,5 @@ const AddProduct = () => {
 };
 
 export default AddProduct;
+
+

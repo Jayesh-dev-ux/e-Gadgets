@@ -6,6 +6,14 @@ const connectDB = require("./config/db");
 
 dotenv.config();
 connectDB();
+
+mongoose.connection.on('connected', () => {
+  console.log('MongoDB connected successfully');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('MongoDB connection error:', err);
+});
 const userRoutes = require("./routes/UserRoutes"); 
 const productRoutes = require("./routes/productRoutes");
 const orderRoutes = require("./routes/orderRoutes");
@@ -55,6 +63,10 @@ app.use('/migrate', migrateRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 // In your main server file (e.g., server.js or app.js)
 app.use("/api/users", userRoutes);
+app.use('/api/test', (req, res) => {
+  console.log('Test route hit');
+  res.json({ message: 'Test successful' });
+});
 app.use('/api/vendors', vendorRoutes);
 app.use('/api/vendor-products', vendorProductRoutes);
 const PORT = process.env.PORT || 5000;
